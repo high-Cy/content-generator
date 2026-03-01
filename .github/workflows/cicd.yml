@@ -1,5 +1,6 @@
 # https://docs.github.com/en/actions/concepts/workflows-and-actions/workflows
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+# https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel
 
 name: CI/CD
 
