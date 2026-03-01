@@ -10,19 +10,19 @@ interface AppToastProps {
   duration?: number;
 }
 
-export default function AppToast({
+const AppToast = ({
   open,
   message,
   severity = "success",
   onClose,
   duration = 4000,
-}: AppToastProps) {
+}: AppToastProps) => {
   return (
     <Snackbar
       open={open}
       autoHideDuration={duration}
       onClose={onClose}
-      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
     >
       <Alert
         severity={severity}
@@ -66,3 +66,5 @@ export function useToast() {
 
   return { toast, showToast, hideToast };
 }
+
+export default AppToast;

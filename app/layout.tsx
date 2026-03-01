@@ -1,18 +1,25 @@
 // app/layout.tsx
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { Playfair_Display, IBM_Plex_Mono } from "next/font/google";
+import { Syne, DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import ThemeRegistry from "@/components/ThemeRegistry";
 import Navbar from "@/components/layout/Navbar";
 import { auth } from "@/auth";
 
-const playfair = Playfair_Display({
+const syne = Syne({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-syne",
   display: "swap",
 });
 
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+// Kept for Mono/CodeBlock components only
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -21,7 +28,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Nóvèl", template: "%s | Nóvèl" },
+  title: { default: "Fawn", template: "%s | Fawn" },
   description: "Automated Rednote content pipeline — from raw idea to polished post.",
 };
 
@@ -29,7 +36,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const session = await auth();
 
   return (
-    <html lang="en" className={`${playfair.variable} ${ibmPlexMono.variable}`}>
+    <html lang="en" className={`${syne.variable} ${dmSans.variable} ${ibmPlexMono.variable}`}>
       <body>
         <SessionProvider session={session}>
           <ThemeRegistry>

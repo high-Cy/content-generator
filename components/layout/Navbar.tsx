@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -23,7 +24,6 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { alpha } from "@mui/material/styles";
 import { PALETTE } from "@/lib/theme";
 import type { Session } from "next-auth";
@@ -32,9 +32,7 @@ import type { Session } from "next-auth";
 // Add routes here — automatically picked up by desktop nav + mobile drawer.
 const NAV_LINKS = [
   { href: "/generate", label: "Generate" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/history", label: "History" },
-  { href: "/dashboard/settings", label: "Settings" },
+  { href: "/history", label: "History" },
 ];
 
 interface NavbarProps {
@@ -55,8 +53,8 @@ export default function Navbar({ session }: NavbarProps) {
   const handleSignOut = async () => {
     setAnchorEl(null);
     await signOut({ redirect: false });
-    router.push("/"); // ✅ Next.js router.push — not window.location
-    router.refresh(); // Refresh server components to clear session
+    router.push("/");
+    router.refresh();
   };
 
   // ─── Desktop Nav ───────────────────────────────────────────────────────────
@@ -71,9 +69,9 @@ export default function Navbar({ session }: NavbarProps) {
             px: 2,
             py: 1,
             fontSize: "0.78rem",
-            fontFamily: '"IBM Plex Mono", monospace',
+            fontFamily: '"DM Sans", sans-serif',
             fontWeight: 600,
-            letterSpacing: "0.06em",
+            letterSpacing: "0.04em",
             textTransform: "uppercase",
             textDecoration: "none",
             color: isActive(href) ? PALETTE.red : alpha(PALETTE.brown, 0.6),
@@ -127,13 +125,6 @@ export default function Navbar({ session }: NavbarProps) {
           </Typography>
         </Box>
         <Divider />
-        <MenuItem
-          component={Link}
-          href="/dashboard/settings"
-          onClick={() => setAnchorEl(null)}
-        >
-          Settings
-        </MenuItem>
         <MenuItem onClick={handleSignOut} sx={{ color: PALETTE.red }}>
           Sign out
         </MenuItem>
@@ -147,9 +138,9 @@ export default function Navbar({ session }: NavbarProps) {
         px: 2,
         py: 1,
         fontSize: "0.78rem",
-        fontFamily: '"IBM Plex Mono", monospace',
+        fontFamily: '"DM Sans", sans-serif',
         fontWeight: 600,
-        letterSpacing: "0.06em",
+        letterSpacing: "0.04em",
         textTransform: "uppercase",
         textDecoration: "none",
         color: PALETTE.brown,
@@ -185,7 +176,7 @@ export default function Navbar({ session }: NavbarProps) {
         </IconButton>
       </Box>
       <List disablePadding>
-        {NAV_LINKS.map(({ href, label }) => (
+        {session && NAV_LINKS.map(({ href, label }) => (
           <ListItemButton
             key={href}
             component={Link}
@@ -198,15 +189,15 @@ export default function Navbar({ session }: NavbarProps) {
               primary={label}
               primaryTypographyProps={{
                 fontSize: "0.82rem",
-                fontFamily: '"IBM Plex Mono", monospace',
+                fontFamily: '"DM Sans", sans-serif',
                 fontWeight: 600,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.04em",
                 textTransform: "uppercase",
               }}
             />
           </ListItemButton>
         ))}
-        <Divider sx={{ my: 1 }} />
+        {session && <Divider sx={{ my: 1 }} />}
         {session && (
           <ListItemButton
             onClick={() => {
@@ -219,9 +210,9 @@ export default function Navbar({ session }: NavbarProps) {
               primary="Sign out"
               primaryTypographyProps={{
                 fontSize: "0.82rem",
-                fontFamily: '"IBM Plex Mono", monospace',
+                fontFamily: '"DM Sans", sans-serif',
                 fontWeight: 600,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.04em",
                 textTransform: "uppercase",
                 color: PALETTE.red,
               }}
@@ -239,7 +230,7 @@ export default function Navbar({ session }: NavbarProps) {
           {/* Logo */}
           <Box
             component={Link}
-            href={session ? "/dashboard" : "/"}
+            href={session ? "/generate" : "/"}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -248,29 +239,17 @@ export default function Navbar({ session }: NavbarProps) {
               mr: 4,
             }}
           >
-            <Box
-              sx={{
-                width: 28,
-                height: 28,
-                backgroundColor: PALETTE.red,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <AutoAwesomeIcon sx={{ color: PALETTE.white, fontSize: 15 }} />
-            </Box>
+            <Image src="/logo.png" alt="Fawn logo" width={28} height={28} />
             <Typography
               sx={{
-                fontFamily: '"Playfair Display", serif',
+                fontFamily: '"Syne", sans-serif',
                 fontWeight: 700,
-                fontSize: "1rem",
+                fontSize: "1.1rem",
                 color: PALETTE.brown,
-                letterSpacing: "-0.01em",
+                letterSpacing: "-0.02em",
               }}
             >
-              Nóvèl
+              Fawn
             </Typography>
           </Box>
 

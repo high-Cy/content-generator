@@ -1,9 +1,18 @@
+import Image from "next/image";
 import { Box, Typography, Paper, Chip } from "@mui/material";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import LoginButton from "@/components/ui/LoginButton";
 
-export default function LoginPage() {
+const LoginPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) => {
+  const { error } = await searchParams;
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+  const initialError =
+    error === "AccessDenied"
+      ? "Access denied. This account is not authorised to sign in."
+      : undefined;
 
   return (
     <Box
@@ -20,77 +29,64 @@ export default function LoginPage() {
         elevation={0}
         sx={{
           width: "100%",
-          maxWidth: 420,
-          p: { xs: 4, sm: 5 },
+          maxWidth: { xs: "100%", sm: 560, md: 640 },
+          minHeight: { sm: 480, md: 560 },
+          p: { xs: 4, sm: 6 },
           borderRadius: 3,
           border: "1px solid",
           borderColor: "divider",
           backgroundColor: "background.paper",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
         {/* Logo / Brand mark */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 4 }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 2,
-              background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AutoAwesomeIcon sx={{ color: "#fff", fontSize: 18 }} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 5 }}>
+          <Image src="/logo.png" alt="Fawn logo" width={120} height={120} />
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: "1.4rem",
+                color: "text.primary",
+                letterSpacing: "-0.02em",
+                lineHeight: 1.2,
+              }}
+            >
+              Content Generator
+            </Typography>
           </Box>
-          <Typography
-            sx={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 700,
-              fontSize: "1rem",
-              color: "text.primary",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Content Generator
-          </Typography>
-          <Chip
-            label="Private"
-            size="small"
-            sx={{
-              ml: "auto",
-              fontSize: "0.65rem",
-              height: 20,
-              bgcolor: "action.selected",
-              color: "text.secondary",
-            }}
-          />
         </Box>
 
         {/* Heading */}
-        <Typography
-          variant="h5"
-          sx={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 700,
-            letterSpacing: "-0.03em",
-            color: "text.primary",
-            lineHeight: 1.2,
-            mb: 1,
-          }}
-        >
-          Welcome back
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: "text.secondary", mb: 0.5, lineHeight: 1.6 }}
-        >
-          Sign in to access your Rednote content pipeline.
-        </Typography>
+        <Box sx={{ mb: 5 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              color: "text.primary",
+              lineHeight: 1.15,
+              mb: 2,
+            }}
+          >
+            Welcome
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ color: "text.secondary", lineHeight: 1.7, fontSize: "1.05rem" }}
+          >
+            Sign in to access your content pipeline.
+          </Typography>
+        </Box>
 
-        {/* Login button + One Tap */}
-        <LoginButton clientId={clientId} />
+        <LoginButton clientId={clientId} initialError={initialError} />
       </Paper>
     </Box>
   );
-}
+};
+
+export default LoginPage;

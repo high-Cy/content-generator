@@ -11,7 +11,7 @@ import { CacheProvider } from "@emotion/react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { theme } from "@/lib/theme";
 
-export default function ThemeRegistry({ children }: { children: ReactNode }) {
+const ThemeRegistry = ({ children }: { children: ReactNode }) => {
   const [{ cache, flush }] = useState(() => {
     const cache = createCache({ key: "mui" });
     cache.compat = true;
@@ -57,3 +57,5 @@ export default function ThemeRegistry({ children }: { children: ReactNode }) {
     </CacheProvider>
   );
 }
+
+export default ThemeRegistry;

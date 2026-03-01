@@ -2,21 +2,18 @@ import { createTheme, alpha } from "@mui/material/styles";
 import type { ThemeOptions } from "@mui/material/styles";
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
-// Single source of truth. Import PALETTE anywhere you need raw hex values.
-// Use the MUI theme for components; use PALETTE for CSS-in-JS one-offs.
 
 export const PALETTE = {
-  red: "#df2935",       // Primary accent — CTAs, active states, alerts
-  sage: "#86ba90",      // Secondary — success states, secondary actions
-  cream: "#f5f3bb",     // Background warmth — page bg, card surfaces
-  terracotta: "#dfa06e",// Tertiary — highlights, tags, decorative
-  brown: "#412722",     // Text & structure — headings, borders, icons
+  red: "#df2935",
+  sage: "#86ba90",
+  cream: "#f4f1e8",       // Warm parchment — less saturated than before
+  terracotta: "#dfa06e",
+  brown: "#412722",
   white: "#ffffff",
-  offWhite: "#fafaf7",  // Slightly warm white for cards on cream bg
+  offWhite: "#faf8f3",
 } as const;
 
 // ─── Semantic colour aliases ──────────────────────────────────────────────────
-// Use these names in component code, not hex values. Makes theme changes easy.
 const semantic = {
   primary: PALETTE.red,
   secondary: PALETTE.sage,
@@ -27,75 +24,75 @@ const semantic = {
 };
 
 // ─── Typography ───────────────────────────────────────────────────────────────
-// Playfair Display: editorial warmth for headings
-// IBM Plex Mono: technical precision for body/labels/code
-// Load both in layout.tsx via next/font/google
+// Syne: modern geometric display for headings
+// DM Sans: clean, readable sans for body and UI
+// IBM Plex Mono: reserved for code blocks only
 const typography: ThemeOptions["typography"] = {
-  fontFamily: '"IBM Plex Mono", monospace',
+  fontFamily: '"DM Sans", sans-serif',
   h1: {
-    fontFamily: '"Playfair Display", serif',
+    fontFamily: '"Syne", sans-serif',
     fontWeight: 700,
     fontSize: "clamp(2.5rem, 5vw, 4rem)",
-    lineHeight: 1.1,
-    letterSpacing: "-0.02em",
+    lineHeight: 1.05,
+    letterSpacing: "-0.03em",
     color: PALETTE.brown,
   },
   h2: {
-    fontFamily: '"Playfair Display", serif',
+    fontFamily: '"Syne", sans-serif',
     fontWeight: 700,
     fontSize: "clamp(1.8rem, 3vw, 2.5rem)",
-    lineHeight: 1.2,
-    letterSpacing: "-0.02em",
+    lineHeight: 1.1,
+    letterSpacing: "-0.025em",
     color: PALETTE.brown,
   },
   h3: {
-    fontFamily: '"Playfair Display", serif',
+    fontFamily: '"Syne", sans-serif',
     fontWeight: 600,
-    fontSize: "clamp(1.3rem, 2vw, 1.8rem)",
-    lineHeight: 1.3,
+    fontSize: "clamp(1.3rem, 2vw, 1.7rem)",
+    lineHeight: 1.2,
+    letterSpacing: "-0.015em",
     color: PALETTE.brown,
   },
   h4: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: '"Syne", sans-serif',
     fontWeight: 600,
     fontSize: "1.1rem",
+    letterSpacing: "-0.01em",
+    color: PALETTE.brown,
+  },
+  h5: {
+    fontFamily: '"DM Sans", sans-serif',
+    fontWeight: 600,
+    fontSize: "0.9rem",
     letterSpacing: "0.02em",
     textTransform: "uppercase",
     color: PALETTE.brown,
   },
-  h5: {
-    fontFamily: '"IBM Plex Mono", monospace',
-    fontWeight: 600,
-    fontSize: "0.95rem",
-    letterSpacing: "0.04em",
-    textTransform: "uppercase",
-    color: PALETTE.brown,
-  },
   body1: {
-    fontFamily: '"IBM Plex Mono", monospace',
-    fontSize: "0.9rem",
-    lineHeight: 1.7,
+    fontFamily: '"DM Sans", sans-serif',
+    fontSize: "0.95rem",
+    lineHeight: 1.65,
     color: PALETTE.brown,
   },
   body2: {
-    fontFamily: '"IBM Plex Mono", monospace',
-    fontSize: "0.8rem",
+    fontFamily: '"DM Sans", sans-serif',
+    fontSize: "0.85rem",
     lineHeight: 1.6,
     color: alpha(PALETTE.brown, 0.65),
   },
   caption: {
-    fontFamily: '"IBM Plex Mono", monospace',
-    fontSize: "0.72rem",
-    letterSpacing: "0.06em",
+    fontFamily: '"DM Sans", sans-serif',
+    fontSize: "0.75rem",
+    letterSpacing: "0.04em",
     textTransform: "uppercase",
     color: alpha(PALETTE.brown, 0.5),
   },
   button: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: '"DM Sans", sans-serif',
     fontWeight: 600,
-    fontSize: "0.82rem",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
+    fontSize: "0.875rem",
+    letterSpacing: "0.01em",
+    textTransform: "none",  // No ALL CAPS on buttons
   },
 };
 
@@ -108,12 +105,12 @@ const components: ThemeOptions["components"] = {
         backgroundColor: PALETTE.cream,
         color: PALETTE.brown,
         minHeight: "100vh",
+        fontFamily: '"DM Sans", sans-serif',
       },
       "::selection": {
         backgroundColor: alpha(PALETTE.red, 0.15),
         color: PALETTE.brown,
       },
-      // Custom scrollbar
       "::-webkit-scrollbar": { width: "6px" },
       "::-webkit-scrollbar-track": { background: "transparent" },
       "::-webkit-scrollbar-thumb": {
@@ -130,11 +127,10 @@ const components: ThemeOptions["components"] = {
     defaultProps: { disableElevation: true, disableRipple: false },
     styleOverrides: {
       root: {
-        borderRadius: 0, // Sharp corners — editorial, not bubbly
-        padding: "10px 24px",
+        borderRadius: 8,
+        padding: "10px 22px",
         transition: "all 0.15s ease",
-        position: "relative",
-        overflow: "hidden",
+        fontWeight: 600,
       },
       containedPrimary: {
         backgroundColor: PALETTE.red,
@@ -145,37 +141,36 @@ const components: ThemeOptions["components"] = {
           borderColor: PALETTE.brown,
         },
         "&:disabled": {
-          backgroundColor: alpha(PALETTE.brown, 0.1),
-          color: alpha(PALETTE.brown, 0.35),
+          backgroundColor: alpha(PALETTE.brown, 0.08),
+          color: alpha(PALETTE.brown, 0.3),
           border: `1px solid transparent`,
         },
       },
       outlinedPrimary: {
         backgroundColor: "transparent",
         color: PALETTE.brown,
-        border: `1px solid ${PALETTE.brown}`,
+        border: `1px solid ${alpha(PALETTE.brown, 0.35)}`,
         "&:hover": {
           backgroundColor: PALETTE.brown,
           color: PALETTE.cream,
+          borderColor: PALETTE.brown,
         },
       },
       outlinedSecondary: {
         backgroundColor: "transparent",
         color: PALETTE.brown,
-        border: `1px solid ${alpha(PALETTE.brown, 0.25)}`,
+        border: `1px solid ${alpha(PALETTE.brown, 0.2)}`,
         "&:hover": {
           backgroundColor: alpha(PALETTE.brown, 0.05),
-          borderColor: PALETTE.brown,
+          borderColor: alpha(PALETTE.brown, 0.4),
         },
       },
       textPrimary: {
         color: PALETTE.brown,
-        "&:hover": {
-          backgroundColor: alpha(PALETTE.brown, 0.06),
-        },
+        "&:hover": { backgroundColor: alpha(PALETTE.brown, 0.06) },
       },
-      sizeLarge: { padding: "13px 32px", fontSize: "0.88rem" },
-      sizeSmall: { padding: "6px 14px", fontSize: "0.75rem" },
+      sizeLarge: { padding: "13px 28px", fontSize: "0.95rem" },
+      sizeSmall: { padding: "6px 14px", fontSize: "0.8rem", borderRadius: 6 },
     },
   },
 
@@ -183,34 +178,54 @@ const components: ThemeOptions["components"] = {
     defaultProps: { variant: "outlined" },
     styleOverrides: {
       root: {
-        "& .MuiOutlinedInput-root": {
-          borderRadius: 0,
-          backgroundColor: PALETTE.white,
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: "0.88rem",
-          "& fieldset": {
-            borderColor: alpha(PALETTE.brown, 0.25),
-            transition: "border-color 0.15s ease",
-          },
-          "&:hover fieldset": { borderColor: alpha(PALETTE.brown, 0.5) },
-          "&.Mui-focused fieldset": {
-            borderColor: PALETTE.brown,
-            borderWidth: "1px",
-          },
-          "&.Mui-error fieldset": { borderColor: PALETTE.red },
-        },
+        // Static label always above the field (used with shrink:true + notched:false in AppInput)
         "& .MuiInputLabel-root": {
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: "0.82rem",
-          letterSpacing: "0.04em",
-          color: alpha(PALETTE.brown, 0.55),
+          fontFamily: '"DM Sans", sans-serif',
+          fontWeight: 600,
+          fontSize: "0.72rem",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: alpha(PALETTE.brown, 0.5),
+          // Pin label above the input — override MUI's translate-based positioning
+          position: "relative",
+          transform: "none",
+          marginBottom: 6,
           "&.Mui-focused": { color: PALETTE.brown },
           "&.Mui-error": { color: PALETTE.red },
         },
+        "& .MuiOutlinedInput-root": {
+          borderRadius: 8,
+          backgroundColor: PALETTE.white,
+          fontFamily: '"DM Sans", sans-serif',
+          fontSize: "0.9rem",
+          marginTop: "0 !important", // Remove MUI's top margin reserved for floating label
+          "& fieldset": {
+            borderColor: alpha(PALETTE.brown, 0.18),
+            transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+            top: 0, // No notch gap needed
+          },
+          "&:hover fieldset": { borderColor: alpha(PALETTE.brown, 0.4) },
+          "&.Mui-focused fieldset": {
+            borderColor: PALETTE.brown,
+            borderWidth: "1.5px",
+            boxShadow: `0 0 0 3px ${alpha(PALETTE.brown, 0.08)}`,
+          },
+          "&.Mui-error fieldset": { borderColor: PALETTE.red },
+          "& input, & textarea": {
+            padding: "11px 14px",
+          },
+        },
         "& .MuiFormHelperText-root": {
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: "0.72rem",
+          fontFamily: '"DM Sans", sans-serif',
+          fontSize: "0.78rem",
           marginLeft: 0,
+          marginTop: 5,
+        },
+        "& .MuiInputBase-input": {
+          "&::placeholder": {
+            color: alpha(PALETTE.brown, 0.3),
+            opacity: 1,
+          },
         },
       },
     },
@@ -219,9 +234,9 @@ const components: ThemeOptions["components"] = {
   MuiSelect: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
-        fontFamily: '"IBM Plex Mono", monospace',
-        fontSize: "0.88rem",
+        borderRadius: 8,
+        fontFamily: '"DM Sans", sans-serif',
+        fontSize: "0.9rem",
         backgroundColor: PALETTE.white,
       },
     },
@@ -230,10 +245,10 @@ const components: ThemeOptions["components"] = {
   MuiChip: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
-        fontFamily: '"IBM Plex Mono", monospace',
-        fontSize: "0.72rem",
-        letterSpacing: "0.04em",
+        borderRadius: 6,
+        fontFamily: '"DM Sans", sans-serif',
+        fontSize: "0.75rem",
+        fontWeight: 500,
         height: 26,
       },
       colorDefault: {
@@ -261,12 +276,9 @@ const components: ThemeOptions["components"] = {
 
   MuiPaper: {
     styleOverrides: {
-      root: {
-        borderRadius: 0,
-        backgroundImage: "none",
-      },
+      root: { borderRadius: 12, backgroundImage: "none" },
       elevation1: {
-        boxShadow: `0 1px 0 ${alpha(PALETTE.brown, 0.08)}, 0 4px 16px ${alpha(PALETTE.brown, 0.06)}`,
+        boxShadow: `0 1px 3px ${alpha(PALETTE.brown, 0.08)}, 0 4px 16px ${alpha(PALETTE.brown, 0.06)}`,
       },
     },
   },
@@ -274,7 +286,7 @@ const components: ThemeOptions["components"] = {
   MuiCard: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
+        borderRadius: 12,
         border: `1px solid ${alpha(PALETTE.brown, 0.1)}`,
         boxShadow: "none",
         backgroundColor: PALETTE.offWhite,
@@ -286,10 +298,9 @@ const components: ThemeOptions["components"] = {
     styleOverrides: {
       tooltip: {
         backgroundColor: PALETTE.brown,
-        fontFamily: '"IBM Plex Mono", monospace',
-        fontSize: "0.72rem",
-        letterSpacing: "0.02em",
-        borderRadius: 0,
+        fontFamily: '"DM Sans", sans-serif',
+        fontSize: "0.75rem",
+        borderRadius: 6,
         padding: "6px 10px",
       },
     },
@@ -298,9 +309,9 @@ const components: ThemeOptions["components"] = {
   MuiAlert: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
-        fontFamily: '"IBM Plex Mono", monospace',
-        fontSize: "0.82rem",
+        borderRadius: 8,
+        fontFamily: '"DM Sans", sans-serif',
+        fontSize: "0.85rem",
         border: "1px solid",
       },
       standardError: {
@@ -326,16 +337,16 @@ const components: ThemeOptions["components"] = {
 
   MuiSnackbar: {
     defaultProps: {
-      anchorOrigin: { vertical: "bottom", horizontal: "right" },
+      anchorOrigin: { vertical: "top", horizontal: "right" },
     },
   },
 
   MuiLinearProgress: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
+        borderRadius: 4,
         backgroundColor: alpha(PALETTE.brown, 0.1),
-        height: 2,
+        height: 3,
       },
       barColorPrimary: { backgroundColor: PALETTE.red },
     },
@@ -344,7 +355,7 @@ const components: ThemeOptions["components"] = {
   MuiSkeleton: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
+        borderRadius: 6,
         backgroundColor: alpha(PALETTE.brown, 0.08),
       },
     },
@@ -373,11 +384,10 @@ const components: ThemeOptions["components"] = {
   MuiListItemButton: {
     styleOverrides: {
       root: {
-        borderRadius: 0,
-        fontFamily: '"IBM Plex Mono", monospace',
+        borderRadius: 8,
+        fontFamily: '"DM Sans", sans-serif',
         "&.Mui-selected": {
           backgroundColor: alpha(PALETTE.red, 0.08),
-          borderLeft: `2px solid ${PALETTE.red}`,
           "&:hover": { backgroundColor: alpha(PALETTE.red, 0.12) },
         },
         "&:hover": { backgroundColor: alpha(PALETTE.brown, 0.05) },
@@ -388,7 +398,7 @@ const components: ThemeOptions["components"] = {
   MuiMenu: {
     styleOverrides: {
       paper: {
-        borderRadius: 0,
+        borderRadius: 10,
         border: `1px solid ${alpha(PALETTE.brown, 0.12)}`,
         boxShadow: `0 8px 24px ${alpha(PALETTE.brown, 0.12)}`,
         backgroundColor: PALETTE.white,
@@ -399,8 +409,8 @@ const components: ThemeOptions["components"] = {
   MuiMenuItem: {
     styleOverrides: {
       root: {
-        fontFamily: '"IBM Plex Mono", monospace',
-        fontSize: "0.82rem",
+        fontFamily: '"DM Sans", sans-serif',
+        fontSize: "0.875rem",
         "&:hover": { backgroundColor: alpha(PALETTE.brown, 0.05) },
         "&.Mui-selected": {
           backgroundColor: alpha(PALETTE.red, 0.06),
@@ -439,7 +449,7 @@ export const theme = createTheme({
   },
   typography,
   components,
-  shape: { borderRadius: 0 }, // Global: sharp corners
+  shape: { borderRadius: 8 },
   spacing: 8,
 });
 

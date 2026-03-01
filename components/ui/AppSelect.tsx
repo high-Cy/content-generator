@@ -21,13 +21,13 @@ interface AppSelectProps extends Omit<SelectProps, "variant"> {
   error?: boolean;
 }
 
-export default function AppSelect({
+const AppSelect = ({
   label,
   options,
   helperText,
   error,
   ...props
-}: AppSelectProps) {
+}: AppSelectProps) => {
   const labelId = `${String(props.name ?? label).toLowerCase().replace(/\s/g, "-")}-label`;
 
   return (
@@ -74,3 +74,5 @@ export default function AppSelect({
     </FormControl>
   );
 }
+
+export default AppSelect;

@@ -14,10 +14,10 @@ const statusColorMap: Record<StatusVariant, ChipProps["color"]> = {
   error: "error",
 };
 
-export default function StatusChip({
+const StatusChip = ({
   status = "default",
   ...props
-}: StatusChipProps) {
+}: StatusChipProps) => {
   return (
     <Chip
       color={statusColorMap[status]}
@@ -27,3 +27,5 @@ export default function StatusChip({
     />
   );
 }
+
+export default StatusChip;

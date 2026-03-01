@@ -18,7 +18,7 @@ const accentColors = {
   terracotta: PALETTE.terracotta,
 };
 
-export default function AppCard({ children, accent, sx, onClick }: AppCardProps) {
+const AppCard = ({ children, accent, sx, onClick }: AppCardProps) => {
   const isClickable = Boolean(onClick);
 
   return (
@@ -46,3 +46,5 @@ export default function AppCard({ children, accent, sx, onClick }: AppCardProps)
     </Box>
   );
 }
+
+export default AppCard;

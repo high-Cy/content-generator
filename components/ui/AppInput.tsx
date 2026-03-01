@@ -20,6 +20,9 @@ const AppInput = forwardRef<HTMLDivElement, AppInputProps>(
         rows={multiline && rows ? rows : undefined}
         minRows={multiline && !rows ? 3 : undefined}
         maxRows={multiline && !rows ? 10 : undefined}
+        // Label always sits above the field — no floating animation
+        InputLabelProps={{ shrink: true }}
+        InputProps={{ notched: false }}
         {...props}
       />
     );

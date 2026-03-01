@@ -1,0 +1,59 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { generatePost } from "@/lib/ai";
+import { buildPrompt } from "@/lib/prompts";
+import { db } from "@/lib/db";
+import { generations, users } from "@/lib/db/schema";
+import { rateLimit } from "@/lib/rateLimit";
+import type { GenerateRequest } from "@/lib/types";
+import { eq } from "drizzle-orm";
+
+export const POST = async (req: NextRequest) => {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!rateLimit("generate", 20, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Rate limit exceeded — 20 requests per hour" }, { status: 429 });
+  }
+
+  const body: GenerateRequest = await req.json();
+
+  if (!body.restaurantName?.trim()) {
+    return NextResponse.json({ error: "restaurantName is required" }, { status: 400 });
+  }
+  if (!body.foodOrdered?.trim()) {
+    return NextResponse.json({ error: "foodOrdered is required" }, { status: 400 });
+  }
+
+  const { system, userPrompt } = buildPrompt(body);
+
+  let output: string;
+  try {
+    output = await generatePost(system, userPrompt);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
+
+  try {
+    const [record] = await db
+      .insert(generations)
+      .values({
+        userId: session.user.id,
+        restaurantName: body.restaurantName,
+        restaurantAddress: body.restaurantAddress ?? null,
+        foodOrdered: body.foodOrdered,
+        promptUsed: userPrompt,
+        output,
+        sourceUrls: body.sourceUrls ?? null,
+        status: "completed",
+      })
+      .returning({ id: generations.id });
+
+    return NextResponse.json({ output, generationId: record.id });
+  } catch (err) {
+    return NextResponse.json({ output, generationId: null });
+  }
+};

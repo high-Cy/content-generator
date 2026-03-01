@@ -3,30 +3,44 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { OAuth2Client } from "google-auth-library";
 import authConfig from "@/auth.config";
+import { upsertUser, getUserAccess } from "@/lib/db/users";
 
 const googleAuthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL!;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig, // Spread edge-safe config (callbacks.authorized etc.)
-
-  // JWT strategy required — no DB adapter
+  ...authConfig,
   session: { strategy: "jwt" },
 
   // Custom pages: stop NextAuth redirecting to its own /api/auth/signin
   pages: {
     signIn: "/",
-    error: "/",
+    error: "/", // Redirect to home on error
+  },
+
+  // Add this to clear cookies on failed login
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
 
   providers: [
-    // Standard Google OAuth button
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "select_account",
+        },
+      },
     }),
 
-    // Google One Tap — verifies the GSI credential token server-side
     Credentials({
       id: "google-one-tap",
       name: "Google One Tap",
@@ -45,7 +59,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const payload = ticket.getPayload();
         if (!payload) throw new Error("Invalid Google token");
         if (!payload.email_verified) throw new Error("Email not verified");
-        if (payload.email !== ADMIN_EMAIL) throw new Error("Access denied");
+        
+        const access = await getUserAccess(payload.email!);
+        if (!access?.isAllowed) {
+          throw new Error("Access denied");
+        }
 
         return {
           id: payload.sub,
@@ -59,28 +77,64 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     // Guard standard Google OAuth button (One Tap is guarded in authorize())
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
-        return user.email === ADMIN_EMAIL;
+        // Check database for access
+        const access = await getUserAccess(user.email!);
+        
+        if (!access?.isAllowed) {
+          return false;
+        }
+        
+        // Log user to database (tracks all sign-in attempts)
+        if (user.email && user.id) {
+          const dbUser = await upsertUser({
+            email: user.email,
+            emailVerified: profile?.email_verified as boolean | undefined,
+            name: user.name,
+            givenName: profile?.given_name as string | undefined,
+            familyName: profile?.family_name as string | undefined,
+            image: user.image,
+            locale: profile?.locale as string | undefined,
+          });
+          user.id = dbUser.id;
+        }
+        
+        return true;
       }
       return true;
     },
 
     // Persist user data into JWT
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {      
       if (user) {
-        token.id = user.id;
         token.picture = user.image;
+        
+        // Log One Tap sign-ins and get database userId
+        if (user.email && user.id) {
+          const dbUser = await upsertUser({
+            email: user.email,
+            emailVerified: (user as any).emailVerified,
+            name: user.name,
+            givenName: (user as any).givenName,
+            familyName: (user as any).familyName,
+            image: user.image,
+            locale: (user as any).locale,
+          });
+          token.userId = dbUser.id;
+        }
       }
+      
       return token;
     },
 
     // Expose JWT data to session object
-    async session({ session, token }) {
+    async session({ session, token }) {      
       if (session.user) {
-        session.user.id = token.id as string;
+        session.user.id = token.userId as string;
         session.user.image = token.picture as string;
       }
+      
       return session;
     },
   },

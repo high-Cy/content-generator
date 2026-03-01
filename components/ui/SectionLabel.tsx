@@ -10,7 +10,7 @@ interface SectionLabelProps {
   sx?: SxProps<Theme>;
 }
 
-export default function SectionLabel({ children, ruled, sx }: SectionLabelProps) {
+const SectionLabel = ({ children, ruled, sx }: SectionLabelProps) => {
   return (
     <Box sx={sx}>
       <Typography
@@ -35,3 +35,5 @@ export default function SectionLabel({ children, ruled, sx }: SectionLabelProps)
     </Box>
   );
 }
+
+export default SectionLabel;

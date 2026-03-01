@@ -1,14 +1,10 @@
 "use client";
 
-// components/LoginButton.tsx
-// Google One Tap + standard OAuth button.
-// Uses Next.js router.push — NOT window.location.href.
-
 import Script from "next/script";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Box, Typography, Divider } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, Typography } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { PALETTE } from "@/lib/theme";
 import { alpha } from "@mui/material/styles";
@@ -29,12 +25,20 @@ declare global {
 
 interface LoginButtonProps {
   clientId: string;
+  initialError?: string;
 }
 
-export default function LoginButton({ clientId }: LoginButtonProps) {
-  const router = useRouter(); // ✅ Next.js router — not window.location
+const LoginButton = ({ clientId, initialError }: LoginButtonProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
+
+  // Clean ?error=... from the URL without a page reload
+  useEffect(() => {
+    if (initialError && typeof window !== "undefined") {
+      window.history.replaceState({}, "", "/");
+    }
+  }, [initialError]);
 
   const handleOneTapResponse = async (response: { credential: string }) => {
     setLoading(true);
@@ -47,7 +51,7 @@ export default function LoginButton({ clientId }: LoginButtonProps) {
       setError("Access denied. This account is not authorised.");
       setLoading(false);
     } else {
-      router.push("/dashboard"); // ✅ Next.js router
+      router.push("/generate"); 
       router.refresh();
     }
   };
@@ -55,7 +59,7 @@ export default function LoginButton({ clientId }: LoginButtonProps) {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    await signIn("google", { callbackUrl: "/dashboard" });
+    await signIn("google", { callbackUrl: "/generate" });
   };
 
   return (
@@ -102,18 +106,9 @@ export default function LoginButton({ clientId }: LoginButtonProps) {
         >
           Continue with Google
         </AppButton>
-
-        <Divider>
-          <Typography variant="caption">or wait for One Tap</Typography>
-        </Divider>
-
-        <Typography
-          variant="caption"
-          sx={{ textAlign: "center", display: "block" }}
-        >
-          Access restricted to authorised accounts only.
-        </Typography>
       </Box>
     </>
   );
 }
+
+export default LoginButton;
