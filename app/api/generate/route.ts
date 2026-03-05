@@ -3,10 +3,9 @@ import { auth } from "@/auth";
 import { generatePost } from "@/lib/ai";
 import { buildPrompt } from "@/lib/prompts";
 import { db } from "@/lib/db";
-import { generations, users } from "@/lib/db/schema";
+import { generations } from "@/lib/db/schema";
 import { rateLimit } from "@/lib/rateLimit";
 import type { GenerateRequest } from "@/lib/types";
-import { eq } from "drizzle-orm";
 
 export const POST = async (req: NextRequest) => {
   const session = await auth();
@@ -53,7 +52,7 @@ export const POST = async (req: NextRequest) => {
       .returning({ id: generations.id });
 
     return NextResponse.json({ output, generationId: record.id });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ output, generationId: null });
   }
 };

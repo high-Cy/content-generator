@@ -106,20 +106,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     // Persist user data into JWT
-    async jwt({ token, user, trigger, session }) {      
+    async jwt({ token, user }) {
       if (user) {
         token.picture = user.image;
-        
+
         // Log One Tap sign-ins and get database userId
         if (user.email && user.id) {
+          const extUser = user as typeof user & {
+            emailVerified?: Date;
+            givenName?: string;
+            familyName?: string;
+            locale?: string;
+          };
           const dbUser = await upsertUser({
             email: user.email,
-            emailVerified: (user as any).emailVerified,
+            emailVerified: !!extUser.emailVerified,
             name: user.name,
-            givenName: (user as any).givenName,
-            familyName: (user as any).familyName,
+            givenName: extUser.givenName,
+            familyName: extUser.familyName,
             image: user.image,
-            locale: (user as any).locale,
+            locale: extUser.locale,
           });
           token.userId = dbUser.id;
         }

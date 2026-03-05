@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Box, Typography, Paper, Chip } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import LoginButton from "@/components/ui/LoginButton";
 
 const LoginPage = async ({
