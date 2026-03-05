@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fawn — Rednote Content Generator
+
+A private, invite-only web app that generates polished Rednote (小红书) posts from raw notes or URLs using AWS Bedrock (Claude).
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript (strict) |
+| UI | Material UI v7 |
+| Auth | Auth.js v5 — Google OAuth + One Tap |
+| AI | AWS Bedrock (`@aws-sdk/client-bedrock-runtime`) |
+| Database | Supabase (PostgreSQL) via Drizzle ORM |
+| Scraping | Python microservice (Flask + BeautifulSoup4) |
+| Deployment | Vercel (Next.js) |
+| Runtime | Node.js 20 |
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Create `.env.local` — never commit this file:
+
+```env
+# Auth.js
+NEXTAUTH_SECRET=          # openssl rand -base64 32
+ADMIN_EMAIL=              # your Google account email
+
+# Google OAuth
+GOOGLE_CLIENT_ID=         # from Google Cloud Console
+GOOGLE_CLIENT_SECRET=
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # same value, safe for browser
+
+# AWS Bedrock
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=us-east-1
+BEDROCK_MODEL_ID=anthropic.claude-3-5-haiku-20241022-v1:0
+
+# Supabase / Postgres
+DATABASE_URL=             # pooled connection (runtime)
+DIRECT_URL=               # direct connection (migrations only)
+
+# Scraper microservice
+SCRAPER_SERVICE_URL=
+SCRAPER_API_KEY=
+```
+
+### 3. Set up the database
+
+```bash
+# Push schema to Supabase
+npm run db:push
+
+# Seed your admin account
+npm run db:seed-admin
+```
+
+### 4. Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev                        # Development server
+npm run build                      # Production build
+npm run lint                       # ESLint
 
-## Learn More
+npm run db:push                    # Push schema changes to database
+npm run db:generate                # Generate migration SQL files
+npm run db:migrate                 # Apply migrations
+npm run db:studio                  # Drizzle Studio GUI
 
-To learn more about Next.js, take a look at the following resources:
+npm run db:seed-admin              # Add your account as admin
+npm run db:whitelist add <email>   # Grant access to a user
+npm run db:whitelist remove <email># Revoke access
+npm run db:whitelist list          # List all allowed users
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Access Control
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Access is controlled by the `allowed_users` table — only whitelisted emails can sign in. Use the whitelist script above to manage access.
 
-## Deploy on Vercel
+Roles: `admin` (you) and `user` (invited guests). Both can use all features.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+├── page.tsx                    # Login page (public)
+├── generate/                   # Content generation UI
+├── history/                    # Generation history
+├── layout.tsx                  # Root layout — fonts, Navbar, SessionProvider
+└── api/
+    ├── auth/[...nextauth]/     # Auth.js handler
+    ├── generate/               # Bedrock → Supabase
+    └── scrape/                 # Proxy to Python scraper
+
+components/
+├── layout/Navbar.tsx           # Session-aware top nav
+├── ui/                         # Interactive component wrappers
+└── styled/                     # MUI styled() primitives
+
+lib/
+├── db/
+│   ├── schema.ts               # All table definitions
+│   ├── index.ts                # Drizzle client
+│   ├── users.ts                # User access helpers
+│   ├── seed-admin.ts           # Admin seed script
+│   └── whitelist.ts            # CLI whitelist tool
+├── ai.ts                       # Bedrock client + generatePost()
+├── prompts.ts                  # System prompt + buildPrompt()
+├── theme.ts                    # MUI theme + PALETTE tokens
+└── types.ts                    # Shared TypeScript interfaces
+
+scraper/                        # Python microservice (separate deployment)
+├── main.py
+├── requirements.txt
+└── Dockerfile
+```
+
+## Database Schema
+
+| Table | Purpose |
+|---|---|
+| `users` | Every Google sign-in attempt |
+| `allowed_users` | Access control list (email + role) |
+| `generations` | Generated post history |
+| `scrape_cache` | Web scrape results (24h TTL) |
+
+## Authentication
+
+Auth.js v5 with two providers:
+- **Google OAuth** — standard redirect flow
+- **Google One Tap** — credential verified server-side via `google-auth-library`
+
+Access is enforced at six layers: proxy, `authorized()` callback, `signIn()` callback, `authorize()` in Credentials, every page, and every API route.
+
+## Deployment
+
+1. Push to GitHub — CI runs lint + typecheck
+2. Vercel auto-deploys on merge to `main`
+3. Add all env vars in the Vercel dashboard (never in code)
+4. Deploy the Python scraper separately to Railway or Fly.io
