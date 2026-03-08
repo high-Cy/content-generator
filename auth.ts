@@ -102,7 +102,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         return true;
       }
-      return true;
+      return false;
     },
 
     // Persist user data into JWT
