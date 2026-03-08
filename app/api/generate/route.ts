@@ -46,7 +46,6 @@ export const POST = async (req: NextRequest) => {
         foodOrdered: body.foodOrdered,
         promptUsed: userPrompt,
         output,
-        sourceUrls: body.sourceUrls ?? null,
         status: "completed",
       })
       .returning({ id: generations.id });

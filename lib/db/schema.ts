@@ -37,20 +37,7 @@ export const generations = pgTable("generations", {
   foodOrdered:       text("food_ordered").notNull(),
   promptUsed:        text("prompt_used").notNull(),
   output:            text("output").notNull(),
-  sourceUrls:        text("source_urls"),  // Newline-separated URLs, null if none
   status:            generationStatusEnum("status").default("completed"),
-});
-
-// ─── Scrape Cache ─────────────────────────────────────────────────────────────
-// 24h TTL — avoids re-scraping unchanged content
-export const scrapeCache = pgTable("scrape_cache", {
-  id:        uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId:    uuid("user_id").references(() => users.id, { onDelete: "set null" }),
-  url:       text("url").notNull().unique(),
-  title:     text("title"),
-  content:   text("content").notNull(),
-  scrapedAt: timestamp("scraped_at", { withTimezone: true }).notNull().defaultNow(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });
 
 // ─── Inferred types ───────────────────────────────────────────────────────────
@@ -60,4 +47,3 @@ export type AllowedUser = typeof allowedUsers.$inferSelect;
 export type NewAllowedUser = typeof allowedUsers.$inferInsert;
 export type Generation = typeof generations.$inferSelect;
 export type NewGeneration = typeof generations.$inferInsert;
-export type ScrapeCache = typeof scrapeCache.$inferSelect;

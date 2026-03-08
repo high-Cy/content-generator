@@ -1,27 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import Box from "@mui/material/Box";
-import { alpha } from "@mui/material/styles";
 import { AppButton, AppInput, AppToast, useToast } from "@/components/ui";
 import {
   PageWrapper, PageContainer, Section, PageHeader,
-  Panel, Col, Row, SpacedRow, FieldGroup,
+  Panel, Col, SpacedRow, FieldGroup,
+  TwoColGrid, StickyFooter, PlainButton,
 } from "@/components/styled";
 import {
-  Eyebrow, PageTitle, MutedText, Caption, BodyText,
+  Eyebrow, PageTitle, MutedText, BodyText,
 } from "@/components/styled";
-import { Well, Callout } from "@/components/styled";
-import { PALETTE } from "@/lib/theme";
+import { Well } from "@/components/styled";
 
 const GenerateForm = () => {
   const { toast, showToast, hideToast } = useToast();
-
-  // Scraper state
-  const [urls, setUrls] = useState("");
-  const [scraping, setScraping] = useState(false);
-  const [scrapeError, setScrapeError] = useState("");
-  const [scrapedContent, setScrapedContent] = useState("");
 
   // Form state
   const [restaurantName, setRestaurantName] = useState("");
@@ -34,47 +26,6 @@ const GenerateForm = () => {
   const [generating, setGenerating] = useState(false);
   const [output, setOutput] = useState("");
   const [copied, setCopied] = useState(false);
-
-  const handleScrape = async () => {
-    const urlList = urls
-      .split("\n")
-      .map((u) => u.trim())
-      .filter(Boolean);
-
-    if (urlList.length === 0) return;
-
-    setScraping(true);
-    setScrapeError("");
-
-    const results: string[] = [];
-    const errors: string[] = [];
-
-    await Promise.all(
-      urlList.map(async (url) => {
-        try {
-          const res = await fetch("/api/scrape", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          results.push(`--- ${url} ---\n${data.content}`);
-        } catch {
-          errors.push(url);
-        }
-      })
-    );
-
-    if (results.length > 0) setScrapedContent(results.join("\n\n"));
-    if (errors.length > 0) {
-      setScrapeError(`Failed to scrape: ${errors.join(", ")}`);
-    } else {
-      showToast(`Scraped ${results.length} URL${results.length > 1 ? "s" : ""}`, "success");
-    }
-
-    setScraping(false);
-  };
 
   const handleGenerate = async () => {
     if (!restaurantName.trim() || !foodOrdered.trim()) return;
@@ -89,8 +40,6 @@ const GenerateForm = () => {
           restaurantAddress: restaurantAddress.trim() || undefined,
           foodOrdered: foodOrdered.trim(),
           examplePosts: examplePosts.trim() || undefined,
-          scrapedContent: scrapedContent.trim() || undefined,
-          sourceUrls: urls.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -121,18 +70,11 @@ const GenerateForm = () => {
             <Eyebrow>Content Studio</Eyebrow>
             <PageTitle style={{ marginTop: 8 }}>Generate</PageTitle>
             <MutedText style={{ marginTop: 8 }}>
-              Fill in the details, optionally scrape reference URLs, and generate.
+              Fill in the details and generate.
             </MutedText>
           </PageHeader>
 
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-              alignItems: "stretch",
-              gap: 4,
-            }}
-          >
+          <TwoColGrid>
             {/* ── Left: Input ── */}
             <Col sx={{ gap: 3 }}>
               <Panel>
@@ -158,13 +100,9 @@ const GenerateForm = () => {
                 </Col>
               </Panel>
               <Panel>
-                <Box
-                  component="button"
-                  onClick={() => setShowExamples(!showExamples)}
-                  sx={{ background: "none", border: "none", cursor: "pointer", p: 0 }}
-                >
+                <PlainButton onClick={() => setShowExamples(!showExamples)}>
                   <Eyebrow>{showExamples ? "- " : "+ "}Example posts (style reference)</Eyebrow>
-                </Box>
+                </PlainButton>
                 {showExamples && (
                   <FieldGroup sx={{ mt: 2 }}>
                     <AppInput
@@ -177,38 +115,6 @@ const GenerateForm = () => {
                     />
                   </FieldGroup>
                 )}
-              </Panel>
-              <Panel>
-                <Eyebrow style={{ marginBottom: 16 }}>Reference URLs</Eyebrow>
-                <AppInput
-                  label="URLs (one per line)"
-                  multiline
-                  rows={4}
-                  value={urls}
-                  onChange={(e) => setUrls(e.target.value)}
-                  placeholder={"https://example.com/review\nhttps://another.com/article"}
-                />
-                {scrapeError && (
-                  <Callout variant="error" sx={{ mt: 2 }}>
-                    <Caption>{scrapeError}</Caption>
-                  </Callout>
-                )}
-                {scrapedContent && (
-                  <Callout variant="success" sx={{ mt: 2 }}>
-                    <Caption>Content scraped — will be included in prompt</Caption>
-                  </Callout>
-                )}
-                <Row sx={{ justifyContent: "flex-end", mt: 2 }}>
-                  <AppButton
-                    variant="outline"
-                    onClick={handleScrape}
-                    loading={scraping}
-                    disabled={!urls.trim()}
-                    size="small"
-                  >
-                    Scrape URLs
-                  </AppButton>
-                </Row>
               </Panel>
             </Col>
 
@@ -249,26 +155,11 @@ const GenerateForm = () => {
                 )}
               </Panel>
             </Col>
-          </Box>
+          </TwoColGrid>
         </Section>
       </PageContainer>
 
-      <Box
-        sx={{
-          position: "sticky",
-          bottom: 0,
-          zIndex: 10,
-          backgroundColor: alpha(PALETTE.cream, 0.92),
-          backdropFilter: "blur(8px)",
-          borderTop: `1px solid ${alpha(PALETTE.brown, 0.1)}`,
-          py: 1.5,
-          px: { xs: 2, md: 4 },
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 2,
-        }}
-      >
+      <StickyFooter>
         {output && (
           <AppButton variant="outline" onClick={handleCopy} size="small">
             {copied ? "Copied!" : "Copy"}
@@ -284,7 +175,7 @@ const GenerateForm = () => {
         >
           Generate Post
         </AppButton>
-      </Box>
+      </StickyFooter>
 
       <AppToast
         open={toast.open}

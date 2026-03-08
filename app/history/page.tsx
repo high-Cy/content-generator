@@ -74,7 +74,6 @@ const HistoryPage = async () => {
                 <SpacedRow sx={{ mb: 1.5 }}>
                   <Row sx={{ gap: 1, flexWrap: "wrap" }}>
                     <CardTitle>{gen.restaurantName}</CardTitle>
-                    {gen.sourceUrls && <InlineTag>scraped</InlineTag>}
                     <InlineTag
                       sx={{ color: gen.status === "failed" ? "error.main" : "success.main" }}
                     >

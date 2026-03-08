@@ -8,7 +8,7 @@ const store = new Map<string, RateLimitEntry>();
 
 /**
  * Returns true if the request is within the limit, false if rate limited.
- * @param key     Identifier (e.g. "generate", "scrape")
+ * @param key     Identifier (e.g. "generate")
  * @param limit   Max requests per window
  * @param windowMs Window size in milliseconds
  */

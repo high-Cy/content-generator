@@ -1,6 +1,6 @@
 # Fawn — Rednote Content Generator
 
-A private, invite-only web app that generates polished Rednote (小红书) posts from raw notes or URLs using AWS Bedrock (Claude).
+A private, invite-only web app that generates polished Rednote (小红书) posts from restaurant details using AWS Bedrock (Claude).
 
 ## Stack
 
@@ -8,12 +8,11 @@ A private, invite-only web app that generates polished Rednote (小红书) posts
 |---|---|
 | Framework | Next.js 16 (App Router) |
 | Language | TypeScript (strict) |
-| UI | Material UI v7 |
+| UI | Material UI v6 |
 | Auth | Auth.js v5 — Google OAuth + One Tap |
 | AI | AWS Bedrock (`@aws-sdk/client-bedrock-runtime`) |
 | Database | Supabase (PostgreSQL) via Drizzle ORM |
-| Scraping | Python microservice (Flask + BeautifulSoup4) |
-| Deployment | Vercel (Next.js) |
+| Deployment | Vercel |
 | Runtime | Node.js 20 |
 
 ## Getting Started
@@ -31,7 +30,7 @@ Create `.env.local` — never commit this file:
 ```env
 # Auth.js
 NEXTAUTH_SECRET=          # openssl rand -base64 32
-ADMIN_EMAIL=              # your Google account email
+ADMIN_EMAIL=              # email address of the admin account (seeded via db:seed-admin)
 
 # Google OAuth
 GOOGLE_CLIENT_ID=         # from Google Cloud Console
@@ -43,14 +42,11 @@ AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=us-east-1
 BEDROCK_MODEL_ID=anthropic.claude-3-5-haiku-20241022-v1:0
+BEDROCK_SYSTEM_PROMPT=    # system prompt for the AI
 
 # Supabase / Postgres
 DATABASE_URL=             # pooled connection (runtime)
 DIRECT_URL=               # direct connection (migrations only)
-
-# Scraper microservice
-SCRAPER_SERVICE_URL=
-SCRAPER_API_KEY=
 ```
 
 ### 3. Set up the database
@@ -105,8 +101,7 @@ app/
 ├── layout.tsx                  # Root layout — fonts, Navbar, SessionProvider
 └── api/
     ├── auth/[...nextauth]/     # Auth.js handler
-    ├── generate/               # Bedrock → Supabase
-    └── scrape/                 # Proxy to Python scraper
+    └── generate/               # Bedrock → Supabase
 
 components/
 ├── layout/Navbar.tsx           # Session-aware top nav
@@ -124,11 +119,6 @@ lib/
 ├── prompts.ts                  # System prompt + buildPrompt()
 ├── theme.ts                    # MUI theme + PALETTE tokens
 └── types.ts                    # Shared TypeScript interfaces
-
-scraper/                        # Python microservice (separate deployment)
-├── main.py
-├── requirements.txt
-└── Dockerfile
 ```
 
 ## Database Schema
@@ -138,7 +128,6 @@ scraper/                        # Python microservice (separate deployment)
 | `users` | Every Google sign-in attempt |
 | `allowed_users` | Access control list (email + role) |
 | `generations` | Generated post history |
-| `scrape_cache` | Web scrape results (24h TTL) |
 
 ## Authentication
 
@@ -146,11 +135,10 @@ Auth.js v5 with two providers:
 - **Google OAuth** — standard redirect flow
 - **Google One Tap** — credential verified server-side via `google-auth-library`
 
-Access is enforced at six layers: proxy, `authorized()` callback, `signIn()` callback, `authorize()` in Credentials, every page, and every API route.
+Access is enforced at multiple layers: proxy, `authorized()` callback, `signIn()` callback, `authorize()` in Credentials, every page, and every API route.
 
 ## Deployment
 
 1. Push to GitHub — CI runs lint + typecheck
 2. Vercel auto-deploys on merge to `main`
 3. Add all env vars in the Vercel dashboard (never in code)
-4. Deploy the Python scraper separately to Railway or Fly.io

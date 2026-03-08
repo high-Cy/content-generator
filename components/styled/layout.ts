@@ -90,3 +90,46 @@ export const FieldSet = styled(Box)({
   marginBottom: 24,
   borderBottom: `1px solid ${alpha(PALETTE.brown, 0.1)}`,
 });
+
+// ─── Composite Patterns ─────────────────────────────────────────────────────
+
+export const TwoColGrid = styled(Box)(({ theme }) => ({
+  display: "grid",
+  gridTemplateColumns: "1fr",
+  alignItems: "stretch",
+  gap: theme.spacing(4),
+  [theme.breakpoints.up("md")]: {
+    gridTemplateColumns: "1fr 1fr",
+  },
+}));
+
+export const StickyFooter = styled(Box)(({ theme }) => ({
+  position: "fixed",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  backgroundColor: alpha(PALETTE.cream, 0.92),
+  backdropFilter: "blur(8px)",
+  borderTop: `1px solid ${alpha(PALETTE.brown, 0.1)}`,
+  paddingTop: theme.spacing(1.5),
+  paddingBottom: theme.spacing(1.5),
+  paddingLeft: theme.spacing(2),
+  paddingRight: theme.spacing(2),
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: theme.spacing(2),
+  [theme.breakpoints.up("md")]: {
+    paddingLeft: theme.spacing(4),
+    paddingRight: theme.spacing(4),
+  },
+}));
+
+export const PlainButton = styled("button")({
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  padding: 0,
+  textAlign: "left",
+});

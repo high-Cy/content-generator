@@ -14,10 +14,6 @@ export const buildPrompt = (
     `Food ordered: ${input.foodOrdered}`,
   ];
 
-  if (input.scrapedContent?.trim()) {
-    lines.push(``, `Web research / notes:`, input.scrapedContent.trim());
-  }
-
   if (input.examplePosts?.trim()) {
     lines.push(
       ``,
