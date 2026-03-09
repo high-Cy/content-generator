@@ -7,7 +7,7 @@ A private, invite-only web app that generates polished Rednote (小红书) posts
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router) |
-| Language | TypeScript (strict) |
+| Language | TypeScript |
 | UI | Material UI v6 |
 | Auth | Auth.js v5 — Google OAuth + One Tap |
 | AI | AWS Bedrock (`@aws-sdk/client-bedrock-runtime`) |
@@ -40,7 +40,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # same value, safe for browser
 # AWS Bedrock
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
-AWS_REGION=us-east-1
+AWS_REGION=ap-southeast-2
 BEDROCK_MODEL_ID=anthropic.claude-3-5-haiku-20241022-v1:0
 BEDROCK_SYSTEM_PROMPT=    # system prompt for the AI
 
