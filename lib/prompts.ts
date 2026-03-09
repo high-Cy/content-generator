@@ -10,9 +10,15 @@ export const buildPrompt = (
 
   const lines = [
     `Restaurant: ${input.restaurantName}`,
-    `Address: ${input.restaurantAddress ?? "unknown"}`,
+    input.restaurantAddress?.trim()
+      ? `Address: ${input.restaurantAddress.trim()}`
+      : `Address: not provided — infer from the reference posts if visible, otherwise omit`,
     `Food ordered: ${input.foodOrdered}`,
   ];
+
+  if (input.focusBrief?.trim()) {
+    lines.push(`Focus / brief: ${input.focusBrief.trim()}`);
+  }
 
   if (input.examplePosts?.trim()) {
     lines.push(

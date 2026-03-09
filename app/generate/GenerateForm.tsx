@@ -19,6 +19,7 @@ const GenerateForm = () => {
   const [restaurantName, setRestaurantName] = useState("");
   const [restaurantAddress, setRestaurantAddress] = useState("");
   const [foodOrdered, setFoodOrdered] = useState("");
+  const [focusBrief, setFocusBrief] = useState("");
   const [examplePosts, setExamplePosts] = useState("");
   const [showExamples, setShowExamples] = useState(false);
 
@@ -39,6 +40,7 @@ const GenerateForm = () => {
           restaurantName: restaurantName.trim(),
           restaurantAddress: restaurantAddress.trim() || undefined,
           foodOrdered: foodOrdered.trim(),
+          focusBrief: focusBrief.trim() || undefined,
           examplePosts: examplePosts.trim() || undefined,
         }),
       });
@@ -96,6 +98,14 @@ const GenerateForm = () => {
                     value={foodOrdered}
                     onChange={(e) => setFoodOrdered(e.target.value)}
                     placeholder="e.g. Wagyu beef ramen, gyoza, matcha latte"
+                  />
+                  <AppInput
+                    label="Focus / brief (optional)"
+                    value={focusBrief}
+                    onChange={(e) => setFocusBrief(e.target.value)}
+                    placeholder="e.g. focus on the truffle pasta"
+                    multiline
+                    rows={2}
                   />
                 </Col>
               </Panel>
