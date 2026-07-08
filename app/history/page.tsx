@@ -1,5 +1,4 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { requirePageAccess } from "@/lib/access";
 import { desc, eq } from "drizzle-orm";
 import Box from "@mui/material/Box";
 import { db } from "@/lib/db";
@@ -23,20 +22,25 @@ const formatDate = (date: Date) =>
   }).format(date);
 
 const HistoryPage = async () => {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/");
+  const { session } = await requirePageAccess();
+  const userId = session.user?.id;
 
   let history: Generation[] = [];
   let dbError = false;
 
-  try {
-    history = await db
-      .select()
-      .from(generations)
-      .where(eq(generations.userId, session.user.id))
-      .orderBy(desc(generations.createdAt));
-  } catch {
+  if (!userId) {
+    // Sign-in happened while the DB was unreachable — no userId in the token
     dbError = true;
+  } else {
+    try {
+      history = await db
+        .select()
+        .from(generations)
+        .where(eq(generations.userId, userId))
+        .orderBy(desc(generations.createdAt));
+    } catch {
+      dbError = true;
+    }
   }
 
   return (

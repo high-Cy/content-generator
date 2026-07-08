@@ -1,12 +1,10 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { requirePageAccess } from "@/lib/access";
 import GenerateForm from "./GenerateForm";
 
 export const metadata = { title: "Generate" };
 
 const GeneratePage = async () => {
-  const session = await auth();
-  if (!session) redirect("/");
+  await requirePageAccess();
 
   return <GenerateForm />;
 };

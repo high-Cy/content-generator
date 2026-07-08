@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { resolveAccess } from "@/lib/access";
 import { generatePost } from "@/lib/ai";
 import { buildPrompt } from "@/lib/prompts";
 import { db } from "@/lib/db";
@@ -9,8 +10,13 @@ import type { GenerateRequest } from "@/lib/types";
 
 export const POST = async (req: NextRequest) => {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const access = await resolveAccess(session.user.email);
+  if (access.status !== "approved") {
+    return NextResponse.json({ error: "Access not approved" }, { status: 403 });
   }
 
   if (!rateLimit("generate", 20, 60 * 60 * 1000)) {
@@ -36,11 +42,17 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ error: message }, { status: 502 });
   }
 
+  const userId = session.user.id;
+  if (!userId) {
+    // Sign-in happened while the DB was unreachable — output can't be saved
+    return NextResponse.json({ output, generationId: null });
+  }
+
   try {
     const [record] = await db
       .insert(generations)
       .values({
-        userId: session.user.id,
+        userId,
         restaurantName: body.restaurantName,
         restaurantAddress: body.restaurantAddress ?? null,
         foodOrdered: body.foodOrdered,
