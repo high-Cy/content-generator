@@ -1,7 +1,9 @@
 # Access-Request Auth Refactor — Design & Implementation Plan
 
-> Validated 2026-07-08. Companion doc: `docs/auth-whitelist-current-flow.md` (how the current
-> whitelist works). Status: **designed, not yet implemented.**
+> Validated 2026-07-08. Companion doc: `docs/auth-whitelist-current-flow.md` (how the old
+> whitelist worked). Status: **implemented 2026-07-08** — code is the source of truth; the
+> migration (`drizzle/0003_cute_dark_beast.sql`) still needs applying once the Supabase
+> project is reachable.
 
 ## Goal
 

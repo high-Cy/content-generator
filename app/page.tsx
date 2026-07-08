@@ -14,7 +14,7 @@ const LoginPage = async ({
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
   const initialError =
     error === "AccessDenied"
-      ? "Access denied. This account is not authorised to sign in."
+      ? "Sign-in failed — your Google account's email address is not verified."
       : undefined;
 
   return (

@@ -48,7 +48,7 @@ const LoginButton = ({ clientId, initialError }: LoginButtonProps) => {
       redirect: false,
     });
     if (result?.error) {
-      setError("Access denied. This account is not authorised.");
+      setError("Sign-in failed — could not verify your Google account.");
       setLoading(false);
     } else {
       router.push("/generate"); 

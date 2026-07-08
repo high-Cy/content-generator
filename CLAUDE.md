@@ -24,8 +24,8 @@ npm run db:push        # push schema straight to Supabase (dev)
 npm run db:generate    # generate migration SQL into drizzle/ (commit these)
 npm run db:migrate     # apply migrations
 npm run db:studio      # Drizzle Studio GUI
-npm run db:seed-admin  # seed ADMIN_EMAIL as admin in allowed_users
-npm run db:whitelist add|remove|list [email]   # manage access CLI
+npm run db:seed-admin  # seed OWNER_EMAIL as approved admin in users
+npm run db:whitelist add|remove|list [email]   # break-glass access CLI (approve/revoke)
 ```
 
 CI (`.github/workflows/cicd.yml`): lint + test on every push/PR; merge to `main` deploys to
@@ -33,23 +33,31 @@ Vercel via CLI. There is no typecheck step in CI — run `npx tsc --noEmit` your
 
 ## Architecture
 
-### Auth & access control (see docs/auth-whitelist-current-flow.md and docs/nextauth-architecture.md)
+### Auth & access control (see docs/plans/2026-07-08-access-request-design.md and docs/nextauth-architecture.md)
 
 Auth.js v5, JWT sessions (no DB adapter). Two Google providers in `auth.ts`:
-- **Google OAuth** (redirect flow) — access gated in the `signIn()` callback
-- **Google One Tap** (Credentials provider) — ID token verified server-side with
-  `google-auth-library`, access gated in `authorize()`
+- **Google OAuth** (redirect flow) and **Google One Tap** (Credentials provider; ID token
+  verified server-side with `google-auth-library`).
 
-**Any change to access logic must be applied to BOTH paths.** Both call `getUserAccess(email)`
-(`lib/db/users.ts`), which checks the `allowed_users` table (email + role `admin|user`) — a DB
-whitelist, not an env-var check. Not whitelisted → sign-in rejected. Successful sign-ins upsert
-into `users` (profile log; not consulted for access). `role` is stored but not yet enforced
-anywhere.
+**Sign-in proves identity only** (verified Google email) — anyone can sign in. Whether they may
+USE the app is a request/approval model decided per-request by `lib/access.ts`:
+- `resolveAccess(email)` is the ONLY place access decisions are made. It checks
+  `users.status` (`pending | approved | denied | revoked`) and `users.role` (`admin | user`).
+  New sign-ins get a `users` row with `status: 'pending'` and land on `/pending`.
+- **Owner fail-safe**: `OWNER_EMAIL` is always approved admin, decided before any DB call,
+  and admin actions refuse to modify it. The owner cannot be locked out.
+- Status/role are NEVER stored in the JWT — guards (`requirePageAccess` for pages,
+  `requireAccess` for APIs/actions) hit the DB per request, so approval/revocation apply
+  immediately. Don't "optimize" this into the token.
+- The admin manages access at `/admin` (server actions in `app/admin/actions.ts`, each
+  re-verifies admin).
+- Providers acquire identity only, keyed on email — adding magic-link sign-in later means
+  adding a NextAuth Email provider + adapter tables, with zero changes to the access layer.
 
 Route protection: `proxy.ts` (Next.js 16 renamed middleware → proxy; export must be named
 `proxy`) re-exports `auth` from `@/auth`; redirect logic lives in the `authorized()` callback in
-`auth.config.ts` (logged-in on `/` → `/generate`; logged-out elsewhere → `/`). API routes
-independently verify `await auth()`.
+`auth.config.ts` (logged-in on `/` → `/generate`; logged-out elsewhere → `/`). Page/API access
+guards are separate, per above.
 
 ### Generation flow
 
@@ -67,7 +75,7 @@ Prompt specifics:
 ### Database
 
 Supabase Postgres through Drizzle ORM only — no raw SQL, no `@supabase/supabase-js`. Schema is
-`lib/db/schema.ts` (tables: `users`, `allowed_users`, `generations`); client is `lib/db/index.ts`
+`lib/db/schema.ts` (tables: `users`, `generations`); client is `lib/db/index.ts`
 (server-only — never import `db` in client components). Use inferred types
 (`typeof users.$inferSelect`) instead of hand-written interfaces for rows. `DATABASE_URL` is the
 pooled (pgbouncer) connection for runtime; `DIRECT_URL` is for migrations only.
@@ -105,6 +113,6 @@ still import them. Fonts: Playfair Display (h1–h3) + IBM Plex Mono (everything
 ## Environment
 
 All secrets in `.env.local` (never committed) / Vercel dashboard. Only
-`NEXT_PUBLIC_GOOGLE_CLIENT_ID` is browser-safe. Key vars: `NEXTAUTH_SECRET`, `ADMIN_EMAIL`,
+`NEXT_PUBLIC_GOOGLE_CLIENT_ID` is browser-safe. Key vars: `NEXTAUTH_SECRET`, `OWNER_EMAIL`,
 `GOOGLE_CLIENT_ID/SECRET`, `AWS_*`, `BEDROCK_MODEL_ID`, `BEDROCK_SYSTEM_PROMPT`,
 `DATABASE_URL`, `DIRECT_URL`. See README.md for the full template.

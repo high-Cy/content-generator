@@ -1,8 +1,8 @@
-# Current Whitelist Flow — How Access Control Works Today
+# Whitelist Flow — How Access Control Worked Before 2026-07-08 (SUPERSEDED)
 
-> Written 2026-07-08 as a refresher before refactoring to a request-access model.
-> Note: `.claude/CLAUDE.md` still describes the old `ADMIN_EMAIL`-env-var guard — the code
-> has since moved to a **database whitelist**. This doc reflects the actual code.
+> **This document is historical.** The whitelist described below was replaced the same day by
+> the request/approval model — see `docs/plans/2026-07-08-access-request-design.md` and
+> `lib/access.ts`. Kept as a record of the old behaviour.
 
 ## TL;DR
 

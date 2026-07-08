@@ -30,7 +30,7 @@ Create `.env.local` — never commit this file:
 ```env
 # Auth.js
 NEXTAUTH_SECRET=          # openssl rand -base64 32
-ADMIN_EMAIL=              # email address of the admin account (seeded via db:seed-admin)
+OWNER_EMAIL=              # owner's email — always has admin access, can never be locked out
 
 # Google OAuth
 GOOGLE_CLIENT_ID=         # from Google Cloud Console
@@ -79,17 +79,23 @@ npm run db:generate                # Generate migration SQL files
 npm run db:migrate                 # Apply migrations
 npm run db:studio                  # Drizzle Studio GUI
 
-npm run db:seed-admin              # Add your account as admin
-npm run db:whitelist add <email>   # Grant access to a user
-npm run db:whitelist remove <email># Revoke access
-npm run db:whitelist list          # List all allowed users
+npm run db:seed-admin              # Seed the owner as approved admin
+npm run db:whitelist add <email>   # Break-glass CLI: approve a user
+npm run db:whitelist remove <email># Break-glass CLI: revoke a user
+npm run db:whitelist list          # List all users + status
 ```
 
 ## Access Control
 
-Access is controlled by the `allowed_users` table — only whitelisted emails can sign in. Use the whitelist script above to manage access.
+Request/approval model. Anyone with a verified Google account can sign in, but new users land
+on `/pending` until approved. The owner reviews requests on `/admin` (approve / deny / revoke —
+effective on the next request). Access status lives on the `users` table
+(`pending | approved | denied | revoked`); the decision logic is `lib/access.ts`.
 
-Roles: `admin` (you) and `user` (invited guests). Both can use all features.
+The owner (`OWNER_EMAIL`) is fail-safed in code: always approved admin, immune to admin
+actions, works even if the database is unreachable.
+
+Roles: `admin` (sees `/admin`) and `user`. Both can use all generation features.
 
 ## Project Structure
 
@@ -98,6 +104,8 @@ app/
 ├── page.tsx                    # Login page (public)
 ├── generate/                   # Content generation UI
 ├── history/                    # Generation history
+├── pending/                    # Awaiting-approval page (pending/denied/revoked)
+├── admin/                      # Access management (admin only)
 ├── layout.tsx                  # Root layout — fonts, Navbar, SessionProvider
 └── api/
     ├── auth/[...nextauth]/     # Auth.js handler
@@ -112,9 +120,10 @@ lib/
 ├── db/
 │   ├── schema.ts               # All table definitions
 │   ├── index.ts                # Drizzle client
-│   ├── users.ts                # User access helpers
-│   ├── seed-admin.ts           # Admin seed script
-│   └── whitelist.ts            # CLI whitelist tool
+│   ├── users.ts                # User + status helpers
+│   ├── seed-admin.ts           # Owner seed script
+│   └── whitelist.ts            # Break-glass access CLI
+├── access.ts                   # resolveAccess/requireAccess — the access decision layer
 ├── ai.ts                       # Bedrock client + generatePost()
 ├── prompts.ts                  # System prompt + buildPrompt()
 ├── theme.ts                    # MUI theme + PALETTE tokens
@@ -125,8 +134,7 @@ lib/
 
 | Table | Purpose |
 |---|---|
-| `users` | Every Google sign-in attempt |
-| `allowed_users` | Access control list (email + role) |
+| `users` | Identity + access: profile, `status` (pending/approved/denied/revoked), `role` |
 | `generations` | Generated post history |
 
 ## Authentication
@@ -135,7 +143,9 @@ Auth.js v5 with two providers:
 - **Google OAuth** — standard redirect flow
 - **Google One Tap** — credential verified server-side via `google-auth-library`
 
-Access is enforced at multiple layers: proxy, `authorized()` callback, `signIn()` callback, `authorize()` in Credentials, every page, and every API route.
+Sign-in only proves identity (verified Google email). Whether the user may use the app is
+checked per-request against the database by `lib/access.ts` — on every protected page and API
+route — so approvals and revocations apply immediately, without waiting for the JWT to expire.
 
 ## Deployment
 

@@ -1,5 +1,12 @@
 # Next.js Authentication Architecture: Complete Technical Flow
 
+> **Updated 2026-07-08:** the access model changed from a hard whitelist to a
+> request/approval flow. Sign-in no longer rejects unknown users — anyone with a verified
+> Google account gets a session and lands on `/pending` until approved. Access is decided
+> per-request by `lib/access.ts` (`resolveAccess`/`requireAccess`), never baked into the JWT.
+> See `docs/plans/2026-07-08-access-request-design.md`. The NextAuth mechanics below
+> (JWT/session/proxy flow) are still accurate.
+
 ## Executive Summary
 
 This document provides a comprehensive breakdown of NextAuth.js v5 authentication flow in Next.js App Router applications, detailing how sessions, JWTs, middleware, and configuration files interact to provide secure authentication and authorization.
@@ -89,25 +96,18 @@ signIn() callback in auth.ts runs
 
 **signIn() callback execution (auth.ts):**
 ```typescript
-async signIn({ user, account, profile }) {
-  // 1. Check if user is allowed (database query)
-  const access = await getUserAccess(user.email);
-  
-  // 2. If not allowed, return false → user sees error
-  if (!access?.isAllowed) return false;
-  
-  // 3. Upsert user to database (track sign-ins)
-  const dbUser = await upsertUser({ email, name, ... });
-  
-  // 4. CRITICAL: Update user.id to database UUID
-  user.id = dbUser.id;
-  
-  // 5. Return true to allow sign-in
-  return true;
+async signIn({ account, profile }) {
+  // Identity gate only: require a Google-verified email.
+  // No whitelist check — access is decided per-request by lib/access.ts,
+  // and new users land on /pending with a session.
+  if (account?.provider === "google") return profile?.email_verified === true;
+  if (account?.provider === "google-one-tap") return true; // verified in authorize()
+  return false;
 }
 ```
 
-**Key Point:** The `user` object passed to subsequent callbacks contains the modified `user.id` from this callback.
+**Key Point:** the user upsert (and `token.userId`) happens once, in the `jwt()` callback,
+for both providers. New emails get a `users` row with `status: 'pending'`.
 
 ### Phase 3: JWT Creation
 
