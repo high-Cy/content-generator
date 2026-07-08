@@ -82,9 +82,8 @@ pooled (pgbouncer) connection for runtime; `DIRECT_URL` is for migrations only.
 
 ### Design system
 
-Single source of truth is `lib/theme.ts` (`PALETTE` + MUI theme). Hard rules: no border-radius
-(`borderRadius: 0` globally), no gradients, no hardcoded hex — use `PALETTE.x` /
-`alpha(PALETTE.x, n)`.
+Single source of truth is `lib/theme.ts` (`PALETTE` + MUI theme; global `borderRadius: 8`).
+Hard rule: no hardcoded hex — use `PALETTE.x` / `alpha(PALETTE.x, n)`.
 
 Two layers, both consumed via barrel imports only:
 1. `@/components/styled` — MUI `styled()` primitives (PageWrapper, Section, Eyebrow, Card,
@@ -93,8 +92,8 @@ Two layers, both consumed via barrel imports only:
 2. `@/components/ui` — props-API wrappers (AppButton, AppInput, AppSelect, AppToast, …).
 
 Files in `components/styled/` must have `"use client"` (Emotion runtime); server components may
-still import them. Fonts: Playfair Display (h1–h3) + IBM Plex Mono (everything else) via
-`next/font`.
+still import them. Fonts via `next/font`: Syne (headings/logo), DM Sans (body/UI), IBM Plex
+Mono (code blocks only). See docs/design-system.md.
 
 ## Conventions
 
