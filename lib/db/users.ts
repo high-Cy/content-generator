@@ -1,13 +1,14 @@
 import { db } from "./index";
-import { users, allowedUsers } from "./schema";
-import { eq, sql } from "drizzle-orm";
+import { users } from "./schema";
+import type { User, UserStatus, UserRole } from "./schema";
+import { desc, eq, sql } from "drizzle-orm";
 
 /**
- * Upsert user on sign-in - creates new user or updates their info
- * Captures all available Google OAuth data
- * Uses email as the unique identifier for upsert
+ * Upsert user on sign-in — creates the row (status defaults to 'pending') or
+ * refreshes profile fields. Never touches status/role: access decisions belong
+ * to lib/access.ts and the admin actions, not the sign-in path.
  */
-export async function upsertUser(data: {
+export const upsertUser = async (data: {
   email: string;
   emailVerified?: boolean;
   name?: string | null;
@@ -15,11 +16,11 @@ export async function upsertUser(data: {
   familyName?: string | null;
   image?: string | null;
   locale?: string | null;
-}) {
+}): Promise<User> => {
   const [result] = await db
     .insert(users)
     .values({
-      email: data.email,
+      email: data.email.toLowerCase(),
       emailVerified: data.emailVerified ?? false,
       name: data.name,
       givenName: data.givenName,
@@ -29,7 +30,7 @@ export async function upsertUser(data: {
     .onConflictDoUpdate({
       target: users.email,
       set: {
-        emailVerified: data.emailVerified ?? false,
+        ...(data.emailVerified !== undefined ? { emailVerified: data.emailVerified } : {}),
         name: data.name,
         givenName: data.givenName,
         familyName: data.familyName,
@@ -38,67 +39,59 @@ export async function upsertUser(data: {
       },
     })
     .returning();
-  
-  return result;
-}
 
-/**
- * Check if user is allowed to access the app
- * Returns the user's role if allowed, null otherwise
- */
-export async function getUserAccess(email: string): Promise<{
-  isAllowed: boolean;
-  role?: "admin" | "user";
-} | null> {
-  const allowed = await db
+  return result;
+};
+
+export const getUserByEmail = async (email: string): Promise<User | null> => {
+  const [user] = await db
     .select()
-    .from(allowedUsers)
-    .where(eq(allowedUsers.email, email.toLowerCase()))
+    .from(users)
+    .where(eq(users.email, email.toLowerCase()))
     .limit(1);
 
-  if (allowed.length === 0) {
-    return { isAllowed: false };
-  }
+  return user ?? null;
+};
 
-  return {
-    isAllowed: true,
-    role: allowed[0].role as "admin" | "user",
-  };
-}
+/** All users, newest first — for the /admin page. */
+export const listUsers = async (): Promise<User[]> =>
+  db.select().from(users).orderBy(desc(users.createdAt));
 
 /**
- * Grant access to a user
- * Should only be called by admins
+ * Set a user's access status (approve / deny / revoke / re-approve).
+ * Creates the row if the email has never signed in. Callers are responsible
+ * for admin + owner-immunity checks (see app/admin/actions.ts).
  */
-export async function grantUserAccess(data: {
+export const setUserStatus = async (data: {
   email: string;
-  role?: "admin" | "user";
-  createdBy?: string;
-  notes?: string;
-}) {
-  const [created] = await db
-    .insert(allowedUsers)
+  status: UserStatus;
+  role?: UserRole;
+  byUserId?: string | null;
+}): Promise<User> => {
+  const approval =
+    data.status === "approved"
+      ? { approvedAt: sql`now()`, approvedBy: data.byUserId ?? null }
+      : {};
+
+  const [result] = await db
+    .insert(users)
     .values({
       email: data.email.toLowerCase(),
+      status: data.status,
       role: data.role ?? "user",
-      createdBy: data.createdBy,
+      ...(data.status === "approved"
+        ? { approvedAt: sql`now()`, approvedBy: data.byUserId ?? null }
+        : {}),
     })
     .onConflictDoUpdate({
-      target: allowedUsers.email,
+      target: users.email,
       set: {
-        role: data.role ?? "user",
-        createdBy: data.createdBy,
+        status: data.status,
+        ...(data.role ? { role: data.role } : {}),
+        ...approval,
       },
     })
     .returning();
-  return created;
-}
 
-/**
- * Revoke user access
- */
-export async function revokeUserAccess(email: string) {
-  await db
-    .delete(allowedUsers)
-    .where(eq(allowedUsers.email, email.toLowerCase()));
-}
+  return result;
+};

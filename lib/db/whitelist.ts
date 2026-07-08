@@ -1,25 +1,25 @@
 /**
- * CLI script to whitelist or remove a user by email.
+ * Break-glass CLI to manage access when the /admin UI is unavailable.
  *
  * Usage:
- *   npm run db:whitelist add friend@example.com
- *   npm run db:whitelist remove friend@example.com
+ *   npm run db:whitelist add friend@example.com      # approve
+ *   npm run db:whitelist remove friend@example.com   # revoke
  *   npm run db:whitelist list
  */
 import { db } from "./index";
-import { allowedUsers } from "./schema";
-import { eq } from "drizzle-orm";
+import { users } from "./schema";
+import { setUserStatus } from "./users";
 
 const [, , action, email] = process.argv;
 
 const run = async () => {
   if (action === "list") {
-    const rows = await db.select().from(allowedUsers).orderBy(allowedUsers.createdAt);
+    const rows = await db.select().from(users).orderBy(users.createdAt);
     if (rows.length === 0) {
-      console.log("No whitelisted users.");
+      console.log("No users.");
     } else {
-      console.log("\nWhitelisted users:");
-      rows.forEach((r) => console.log(`  ${r.role.padEnd(6)}  ${r.email}`));
+      console.log("\nUsers:");
+      rows.forEach((r) => console.log(`  ${r.status.padEnd(8)}  ${r.role.padEnd(6)}  ${r.email}`));
     }
     process.exit(0);
   }
@@ -30,14 +30,11 @@ const run = async () => {
   }
 
   if (action === "add") {
-    await db
-      .insert(allowedUsers)
-      .values({ email: email.toLowerCase(), role: "user" })
-      .onConflictDoUpdate({ target: allowedUsers.email, set: { role: "user" } });
-    console.log(`Whitelisted: ${email}`);
+    await setUserStatus({ email, status: "approved" });
+    console.log(`Approved: ${email}`);
   } else if (action === "remove") {
-    await db.delete(allowedUsers).where(eq(allowedUsers.email, email.toLowerCase()));
-    console.log(`Removed: ${email}`);
+    await setUserStatus({ email, status: "revoked" });
+    console.log(`Revoked: ${email}`);
   } else {
     console.error("Unknown action. Use: add | remove | list");
     process.exit(1);

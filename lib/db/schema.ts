@@ -3,9 +3,13 @@ import { sql } from "drizzle-orm";
 
 // ─── Enums ─────────────────────────────────────────────────────────────────────
 export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
+export const userStatusEnum = pgEnum("user_status", ["pending", "approved", "denied", "revoked"]);
 export const generationStatusEnum = pgEnum("generation_status", ["completed", "failed"]);
 
 // ─── Users ─────────────────────────────────────────────────────────────────────
+// Single source of truth for identity AND access. Anyone who signs in gets a row
+// (status 'pending'); the admin flips status via /admin. The owner (OWNER_EMAIL)
+// bypasses this table entirely — see lib/access.ts.
 export const users = pgTable("users", {
   id:               uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   email:            text("email").notNull().unique(),
@@ -14,17 +18,12 @@ export const users = pgTable("users", {
   givenName:        text("given_name"),
   familyName:       text("family_name"),
   locale:           varchar("locale", { length: 10 }),
+  status:           userStatusEnum("status").notNull().default("pending"),
+  role:             userRoleEnum("role").notNull().default("user"),
+  approvedAt:       timestamp("approved_at", { withTimezone: true }),
+  approvedBy:       uuid("approved_by"),
   createdAt:        timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastSignInAt:     timestamp("last_sign_in_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-// ─── Allowed Users ─────────────────────────────────────────────────────────────
-export const allowedUsers = pgTable("allowed_users", {
-  id:        uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  email:     text("email").notNull().unique(),
-  role:      userRoleEnum("role").notNull().default("user"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  createdBy: uuid("created_by").references(() => users.id),
 });
 
 // ─── Generations ───────────────────────────────────────────────────────────────
@@ -43,7 +42,7 @@ export const generations = pgTable("generations", {
 // ─── Inferred types ───────────────────────────────────────────────────────────
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
-export type AllowedUser = typeof allowedUsers.$inferSelect;
-export type NewAllowedUser = typeof allowedUsers.$inferInsert;
+export type UserStatus = User["status"];
+export type UserRole = User["role"];
 export type Generation = typeof generations.$inferSelect;
 export type NewGeneration = typeof generations.$inferInsert;
