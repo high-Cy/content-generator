@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import ThemeRegistry from "@/components/ThemeRegistry";
 import Navbar from "@/components/layout/Navbar";
 import { auth } from "@/auth";
+import { resolveAccess } from "@/lib/access";
 
 const syne = Syne({
   subsets: ["latin"],
@@ -34,13 +35,16 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const session = await auth();
+  const isAdmin = session?.user?.email
+    ? (await resolveAccess(session.user.email)).role === "admin"
+    : false;
 
   return (
     <html lang="en" className={`${syne.variable} ${dmSans.variable} ${ibmPlexMono.variable}`}>
       <body>
         <SessionProvider session={session}>
           <ThemeRegistry>
-            <Navbar session={session} />
+            <Navbar session={session} isAdmin={isAdmin} />
             <main>{children}</main>
           </ThemeRegistry>
         </SessionProvider>

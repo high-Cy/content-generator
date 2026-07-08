@@ -37,9 +37,10 @@ const NAV_LINKS = [
 
 interface NavbarProps {
   session: Session | null;
+  isAdmin?: boolean;
 }
 
-export default function Navbar({ session }: NavbarProps) {
+export default function Navbar({ session, isAdmin = false }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const theme = useTheme();
@@ -49,6 +50,8 @@ export default function Navbar({ session }: NavbarProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+  const navLinks = isAdmin ? [...NAV_LINKS, { href: "/admin", label: "Admin" }] : NAV_LINKS;
 
   const handleSignOut = async () => {
     setAnchorEl(null);
@@ -60,7 +63,7 @@ export default function Navbar({ session }: NavbarProps) {
   // ─── Desktop Nav ───────────────────────────────────────────────────────────
   const desktopNav = (
     <Box sx={{ display: "flex", alignItems: "center", gap: 0 }}>
-      {NAV_LINKS.map(({ href, label }) => (
+      {navLinks.map(({ href, label }) => (
         <Box
           key={href}
           component={Link}
@@ -176,7 +179,7 @@ export default function Navbar({ session }: NavbarProps) {
         </IconButton>
       </Box>
       <List disablePadding>
-        {session && NAV_LINKS.map(({ href, label }) => (
+        {session && navLinks.map(({ href, label }) => (
           <ListItemButton
             key={href}
             component={Link}
