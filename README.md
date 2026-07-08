@@ -51,13 +51,25 @@ DIRECT_URL=               # direct connection (migrations only)
 
 ### 3. Set up the database
 
+**Fresh database:**
+
 ```bash
 # Push schema to Supabase
 npm run db:push
 
-# Seed your admin account
+# Seed the owner as approved admin (optional — OWNER_EMAIL is fail-safed in code anyway)
 npm run db:seed-admin
 ```
+
+**Existing database (pre-July-2026, still has `allowed_users`):** apply
+`drizzle/0003_cute_dark_beast.sql` by pasting it into the Supabase SQL editor (or via `psql`
+on `DIRECT_URL`). It adds the status columns, backfills whitelisted emails as `approved`,
+then drops `allowed_users`.
+
+> ⚠️ Do **not** use `npm run db:push` for that upgrade — push diffs schemas without running
+> data backfills, so the whitelist would be dropped unmigrated. Note `npm run db:migrate` is
+> also currently unusable: the `0000`/`0001` migration SQL files are missing from `drizzle/`
+> (only their meta snapshots remain), so the migrator can't replay history.
 
 ### 4. Run the dev server
 
@@ -149,6 +161,9 @@ route — so approvals and revocations apply immediately, without waiting for th
 
 ## Deployment
 
-1. Push to GitHub — CI runs lint + typecheck
+1. Push to GitHub — CI runs lint + tests (no typecheck; run `npx tsc --noEmit` locally)
 2. Vercel auto-deploys on merge to `main`
 3. Add all env vars in the Vercel dashboard (never in code)
+
+> Renamed July 2026: `ADMIN_EMAIL` → `OWNER_EMAIL`. Add `OWNER_EMAIL` in Vercel before
+> deploying the access-request refactor; `ADMIN_EMAIL` is no longer read and can be removed.
