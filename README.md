@@ -32,6 +32,10 @@ BEDROCK_SYSTEM_PROMPT=    # system prompt for the AI
 # Supabase / Postgres
 DATABASE_URL=             # pooled connection (runtime)
 DIRECT_URL=               # direct connection (migrations only)
+
+# Resend (owner email on new access request — optional; feature no-ops if unset)
+RESEND_API_KEY=           # from resend.com dashboard
+RESEND_FROM_EMAIL=        # verified sender, e.g. "Fawn <noreply@yourdomain>" (or onboarding@resend.dev for testing)
 ```
 
 Set up the database, then run the dev server:

@@ -2,6 +2,7 @@ import { db } from "./index";
 import { users } from "./schema";
 import type { User, UserStatus, UserRole } from "./schema";
 import { desc, eq, sql } from "drizzle-orm";
+import { notifyOwnerOfAccessRequest } from "../email";
 
 /**
  * Upsert user on sign-in — creates the row (status defaults to 'pending') or
@@ -39,6 +40,13 @@ export const upsertUser = async (data: {
       },
     })
     .returning();
+
+  // On a genuine INSERT both timestamps come from the same statement and are equal;
+  // on a re-sign-in only lastSignInAt is bumped, so they differ. Notify the owner
+  // fire-and-forget — a mail failure must never block sign-in.
+  if (result.createdAt.getTime() === result.lastSignInAt.getTime()) {
+    void notifyOwnerOfAccessRequest(result).catch(() => {});
+  }
 
   return result;
 };

@@ -114,4 +114,6 @@ Mono (code blocks only). See docs/design-system.md.
 All secrets in `.env.local` (never committed) / Vercel dashboard. Only
 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is browser-safe. Key vars: `NEXTAUTH_SECRET`, `OWNER_EMAIL`,
 `GOOGLE_CLIENT_ID/SECRET`, `AWS_*`, `BEDROCK_MODEL_ID`, `BEDROCK_SYSTEM_PROMPT`,
-`DATABASE_URL`, `DIRECT_URL`. See README.md for the full template.
+`DATABASE_URL`, `DIRECT_URL`. Optional: `RESEND_API_KEY` + `RESEND_FROM_EMAIL` power the owner
+access-request notification (`lib/email.ts`); the feature no-ops if either is unset. See
+README.md for the full template.

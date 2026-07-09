@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import Box from "@mui/material/Box";
 import { db } from "@/lib/db";
 import { generations } from "@/lib/db/schema";
+import { formatDateTime } from "@/lib/format";
 import type { Generation } from "@/lib/db/schema";
 import {
   PageWrapper, PageContainer, Section, PageHeader, Col, SpacedRow, Row,
@@ -11,15 +12,6 @@ import { Eyebrow, PageTitle, MutedText, BodyText, Caption, CardTitle } from "@/c
 import { AccentCard, InlineTag, Callout } from "@/components/styled";
 
 export const metadata = { title: "History" };
-
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 
 const HistoryPage = async () => {
   const { session } = await requirePageAccess();
@@ -84,7 +76,7 @@ const HistoryPage = async () => {
                       {gen.status}
                     </InlineTag>
                   </Row>
-                  <Caption>{formatDate(gen.createdAt)}</Caption>
+                  <Caption>{formatDateTime(gen.createdAt)}</Caption>
                 </SpacedRow>
 
                 <Box sx={{ mb: 1 }}>

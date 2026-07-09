@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import { requirePageAccess, isOwnerEmail } from "@/lib/access";
 import { listUsers } from "@/lib/db/users";
+import { formatDateTime } from "@/lib/format";
 import type { User } from "@/lib/db/schema";
 import {
   PageWrapper, PageContainer, Section, PageHeader, Col, Row, SpacedRow,
@@ -11,15 +12,6 @@ import { AppButton, StatusChip } from "@/components/ui";
 import { approveUser, denyUser, revokeUser } from "./actions";
 
 export const metadata = { title: "Admin" };
-
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 
 const STATUS_CHIP: Record<User["status"], "warning" | "success" | "error" | "default"> = {
   pending: "warning",
@@ -99,7 +91,7 @@ const AdminPage = async () => {
                     <Col sx={{ gap: 0.5 }}>
                       <CardTitle>{u.name ?? u.email}</CardTitle>
                       <Caption>{u.email}</Caption>
-                      <Caption>Requested {formatDate(u.createdAt)}</Caption>
+                      <Caption>Requested {formatDateTime(u.createdAt)}</Caption>
                     </Col>
                     <Row sx={{ gap: 1.5 }}>
                       <ActionForm action={approveUser} email={u.email} label="Approve" variant="primary" />
@@ -135,7 +127,7 @@ const AdminPage = async () => {
                           {owner && <InlineTag>owner</InlineTag>}
                         </Row>
                         <Caption>{u.email}</Caption>
-                        <Caption>Last sign-in {formatDate(u.lastSignInAt)}</Caption>
+                        <Caption>Last sign-in {formatDateTime(u.lastSignInAt)}</Caption>
                       </Col>
                       {!owner && (
                         <Row sx={{ gap: 1.5 }}>
