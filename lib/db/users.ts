@@ -42,9 +42,12 @@ export const upsertUser = async (data: {
     .returning();
 
   // On a genuine INSERT both timestamps come from the same statement and are equal;
-  // on a re-sign-in only lastSignInAt is bumped, so they differ. Notify the owner
-  // fire-and-forget — a mail failure must never block sign-in.
+  // on a re-sign-in only lastSignInAt is bumped, so they differ. Log + notify the
+  // owner fire-and-forget — a mail failure must never block sign-in.
   if (result.createdAt.getTime() === result.lastSignInAt.getTime()) {
+    console.log(
+      `[access-request] new user requested access: ${result.email} (status: ${result.status})`
+    );
     void notifyOwnerOfAccessRequest(result).catch(() => {});
   }
 

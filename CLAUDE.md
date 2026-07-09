@@ -20,9 +20,7 @@ npm run lint           # ESLint
 npm run test           # stub — no tests exist yet ("echo 'No test yet'")
 
 # DB scripts are wrapped with dotenv -e .env.local — they need that file present
-npm run db:push        # push schema straight to Supabase (dev)
-npm run db:generate    # generate migration SQL into drizzle/ (commit these)
-npm run db:migrate     # apply migrations
+npm run db:push        # push schema straight to Supabase (this is the schema workflow)
 npm run db:studio      # Drizzle Studio GUI
 npm run db:seed-admin  # seed OWNER_EMAIL as approved admin in users
 npm run db:whitelist add|remove|list [email]   # break-glass access CLI (approve/revoke)

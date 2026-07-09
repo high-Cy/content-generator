@@ -54,8 +54,7 @@ npm run dev               # http://localhost:3000
 ```bash
 npm run dev / build / lint
 
-npm run db:push                    # Push schema changes to database
-npm run db:generate                # Generate migration SQL files
+npm run db:push                    # Push schema changes to database (the schema workflow)
 npm run db:studio                  # Drizzle Studio GUI
 
 npm run db:seed-admin              # Seed the owner as approved admin (optional)

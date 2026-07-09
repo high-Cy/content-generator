@@ -8,8 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "test": "echo 'No test yet'",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
     "db:push": "dotenv -e .env.local -- drizzle-kit push",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
     "db:seed-admin": "dotenv -e .env.local -- tsx lib/db/seed-admin.ts",
@@ -26,12 +24,10 @@
     "google-auth-library": "^10.6.1",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
-    "nvm": "^0.0.4",
     "postgres": "^3.4.8",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "resend": "^6.17.2",
-    "vercel": "^50.25.1"
+    "resend": "^6.17.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -43,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "^54.21.1"
   }
 }
