@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Fawn** — a private, invite-only web app that generates Rednote (小红书) restaurant-review posts
 via AWS Bedrock (Claude). Single owner plus a handful of invited users; no public sign-up, no
-multi-tenancy. Next.js 16 (App Router) + TypeScript strict + MUI v6, deployed on Vercel.
+multi-tenancy. Next.js 16 (App Router) + TypeScript strict + MUI v7, deployed on Vercel.
 
 > Note: an earlier spec described Notion integration, a Python scraper, and `/dashboard` routes.
 > None of that exists anymore — trust the code, not old docs.
@@ -49,6 +49,10 @@ USE the app is a request/approval model decided per-request by `lib/access.ts`:
   immediately. Don't "optimize" this into the token.
 - The admin manages access at `/admin` (server actions in `app/admin/actions.ts`, each
   re-verifies admin).
+- **New-request notification**: `upsertUser` detects a genuinely new row (insert vs re-sign-in
+  via `createdAt === lastSignInAt`) and, only then, fires an owner email through `lib/email.ts`
+  (Resend). It's fire-and-forget — a mail failure can never block sign-in — and no-ops if
+  `RESEND_API_KEY` / `RESEND_FROM_EMAIL` / `OWNER_EMAIL` are unset, or if the requester is the owner.
 - Providers acquire identity only, keyed on email — adding magic-link sign-in later means
   adding a NextAuth Email provider + adapter tables, with zero changes to the access layer.
 
@@ -76,7 +80,9 @@ Supabase Postgres through Drizzle ORM only — no raw SQL, no `@supabase/supabas
 `lib/db/schema.ts` (tables: `users`, `generations`); client is `lib/db/index.ts`
 (server-only — never import `db` in client components). Use inferred types
 (`typeof users.$inferSelect`) instead of hand-written interfaces for rows. `DATABASE_URL` is the
-pooled (pgbouncer) connection for runtime; `DIRECT_URL` is for migrations only.
+pooled (pgbouncer) connection for runtime; `DIRECT_URL` is for direct (non-pgbouncer) access.
+Timestamps are stored as UTC `timestamptz`; the UI renders them in AEST via `formatDateTime`
+(`lib/format.ts`) — server components format in UTC by default, so always use this helper.
 
 ### Design system
 
