@@ -17,6 +17,7 @@ multi-tenancy. Next.js 16 (App Router) + TypeScript strict + MUI v7, deployed on
 npm run dev            # dev server (localhost:3000)
 npm run build          # production build — use this + lint as the verification gate
 npm run lint           # ESLint
+npm run typecheck      # tsgo --noEmit (also runs in CI)
 npm run test           # stub — no tests exist yet ("echo 'No test yet'")
 
 # DB scripts are wrapped with dotenv -e .env.local — they need that file present
@@ -24,8 +25,8 @@ npm run db:push        # push schema straight to Supabase (this is the schema wo
 npm run db:studio      # Drizzle Studio GUI
 ```
 
-CI (`.github/workflows/cicd.yml`): lint + test on every push/PR; merge to `main` deploys to
-Vercel via CLI. There is no typecheck step in CI — run `npx tsc --noEmit` yourself.
+CI (`.github/workflows/cicd.yml`): lint + typecheck + test on every push/PR; merge to `main`
+deploys to Vercel via CLI.
 
 ## Architecture
 
@@ -114,8 +115,8 @@ Mono (code blocks only). See docs/design-system.md.
 ## Environment
 
 All secrets in `.env.local` (never committed) / Vercel dashboard. Only
-`NEXT_PUBLIC_GOOGLE_CLIENT_ID` is browser-safe. Key vars: `NEXTAUTH_SECRET`, `OWNER_EMAIL`,
+`NEXT_PUBLIC_GOOGLE_CLIENT_ID` is browser-safe. Key vars: `AUTH_SECRET`, `OWNER_EMAIL`,
 `GOOGLE_CLIENT_ID/SECRET`, `AWS_*`, `BEDROCK_MODEL_ID`, `BEDROCK_SYSTEM_PROMPT`,
 `DATABASE_URL`, `DIRECT_URL`. Optional: `RESEND_API_KEY` + `RESEND_FROM_EMAIL` power the owner
 access-request notification (`lib/email.ts`); the feature no-ops if either is unset. See
-README.md for the full template.
+`.env.example` for the full template.
