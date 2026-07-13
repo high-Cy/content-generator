@@ -9,9 +9,7 @@
     "lint": "eslint",
     "test": "echo 'No test yet'",
     "db:push": "dotenv -e .env.local -- drizzle-kit push",
-    "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
-    "db:seed-admin": "dotenv -e .env.local -- tsx lib/db/seed-admin.ts",
-    "db:whitelist": "dotenv -e .env.local -- tsx lib/db/whitelist.ts"
+    "db:studio": "dotenv -e .env.local -- drizzle-kit studio"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "3.1000.0",
