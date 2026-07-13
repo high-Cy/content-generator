@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsgo --noEmit",
     "test": "echo 'No test yet'",
     "db:push": "dotenv -e .env.local -- drizzle-kit push",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio"
@@ -32,6 +33,7 @@
     "@types/node": "20.19.35",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "dotenv-cli": "11.0.0",
     "drizzle-kit": "0.31.9",
     "eslint": "9.39.3",
